@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Simulador de reservacion de spa Bella: busqueda, filtros, descuentos y resumen de reserva con funciones de orden superior en JavaScript.">
+    <meta name="author" content="Juanita Callejas Castro">
+    <meta name="keywords" content="JavaScript, funciones de orden superior, map, filter, find, reduce, spa, simulador">
+    <meta property="og:title" content="Bella Spa | Simulador de reservas con JavaScript">
+    <meta property="og:description" content="Proyecto entrega 6: interaccion con un array de objetos usando find, filter, map, reduce y sort.">
+    <meta property="og:type" content="website">
+    <title>Bella Spa | Simulador de reservas con JavaScript</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪷</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https//fontsgstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+
+    /* 
+    Bella Spa - Estilos
+    Diseno de aplicacion: barra lateral de acciones + area de contenido.
+    */
+
+    :root {
+        --crema: #f7f1ec;
+        --crema-oscuro: #ece2da;
+        --blanco: #ffffff;
+        --ciruela: #2a1b2d;
+        --ciruela-media: #3b2840;
+        --ciruela-clara: #cdbfd0;
+        --tinta: #2a1f2c;
+        --tinta-suave: #6b5c6e;
+        --rosa: #b4526a;
+        --rosa-oscuro: #94415a;
+        --salvia: #5f8580;
+        --salvia-clara: #dce8e5;
+        --linea: #e2d6cd;
+        --radio: 14px;
+        --fuente-titulo: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+        --fuente-texto: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --fuente-codigo: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    
+    html { scroll-behavior: smooth; }
+
+    body {
+        margin: 0;
+        background: var(--crema);
+        color: var(--tinta);
+        font-family: var(--fuente-texto);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3 {
+        font-family:  var(--fuente-titulo);
+        line-height:  1.15;
+        margin: 0 0 0.6rem;
+        font-weight: 600;
+    }
+
+    h1 { font-size: clamp(2.4rem, 5vw, 3.8rem); }
+    h2 { font-size: clamp(1.8rem, 3.5vw, 2.3rem); }
+    h3 { font-size: 1.35rem; }
+
+    p{ margin: 0 0 1rem; }
+
+    code{
+        font-family: var(--fuente-codigo);
+        font-size: 0.88rem;
+        background: var(--crema-oscuro);
+        padding: 0.1em 0.4em;
+        border-radius: 4px;
+    }
+
+    :focus-visible { outline: 3px solid var(--rosa); outline-offset: 3px; }
+
+    .salto {
+        position: absolute;
+        left: -999px;
+        top: 0;
+        background: var(--ciruela);
+        color: var(--blanco);
+        padding: 0.6rem 1rem;
+        z-index: 100;
+    }
+
+    .salto:focus { left: 0; }
+
+    /* Estructura de aplicacion */
+    .app { display: grid; min-height: 100vh; }
+
+    .lateral {
+        background: var(--ciruela);
+        color: #f4e9ec;
+        padding: 1.5rem 1.25rem;
+    }
+
+    .contenido { padding: 1.25rem; min-width: 0 ; }
+
+    /* Barra Lateral */
+    .marca__nombre {
+        font-family: var(--fuente-titulo);
+        font-size: 1.9rem;
+        font-weight: 700;
+        line-height: 1;
+        margin: 0;
+    }
+
+    .marca__lema { margin: 0.4rem 0 0; font-size: 0.9rem; color: var(--ciruela-clara);  }
+
+    .lateral h2 {
+        font-family: var(--fuente-texto);
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--ciruela-clara);
+        margin: 1.5rem 0 0.6rem;
+    }
+
+    .acciones { display: grid; gap: 0.5rem; }
+
+    .accion {
+        font: inherit;
+        font-size: 0.93rem;
+        text-align: left;
+        color: #f4e9ec;
+        background: var(--ciruela-media);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        padding: 0.65rem 0.9rem;
+        cursor: pointer;
+        transition: background 0.2s, border-color 0.2s;
+    }
+
+    .accion:hover { background: #4b3550; border-color: var(--rosa); }
+
+    .accion small { display: block; color: var(--rosa); }
+    .accion--principal { background: var(--rosa); border-color: var(--rosa); font-weight: 600; }
+    .accion--principal:hover {background: var(--rosa-oscuro); border-color: var(--rosa-oscuro); 
+    }
+
+    /* Portada */
+
+    .portada { 
+        background: 
+        radial-gradient(circle at 85% 20%, rgba(180, 82, 106, 0.35), transparent 45%),
+        linear-gradient(135deg, #3b2840 0%, #5a3a58 60%, #7a4a62 100%);
+        color: #fbf3f4;
+        border-radius: var(--radio);
+        padding: 2rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .portada p { max-width: 58ch; color: #eadbe0; }
+
+    .datos { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
+
+    dato {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 12px;
+        padding: 0.6rem 1rem;
+        min-width: 120px;
+    }
+
+    .dato strong {
+        display: block;
+        font-family: var(--fuente-titulo);
+        font-size: 1.8rem;
+        line-height: 1.1;
+    }
+
+    .dato span { font-size: 0.85rem; color: #eadbe0; }
+
+    /* Avisos */
+    .aviso {
+        background: var(--salvia-clara);
+        border-left: 4px solid var(--salvia);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .aviso--error { background: #f6dde1; border-left-color: var(--rosa); }
+
+    /* Avisos */
+
+    .aviso {
+        background: var(--salvia-clara);
+        border-left: 4px solid var(--salvia);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .aviso--error {background: #f6dde1; border-left-color: var(--rosa); }
+
+    /* Secciones */
+    .seccion { margin-bottom: 2.5rem; }
+
+    .seccion__cabecera {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: end;
+        justify-content: space-between;
+        gap: 0.5rem 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .seccion__cabecera p { margin: 0; color: var(--tinta-suave); }
+
+    .boton {
+        font: inherit;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border-radius: 999px;
+        padding: 0.55rem 1.1rem;
+        cursor: pointer;
+        border: 2px solid var(--rosa);
+        background: transparent;
+        color: var(--rosa-oscuro);
+        transition: background 0.2s, color 0.2;
+    }
+    .boton:hover:not(:disabled) { background: var(--rosa); color: var(--blanco); }
+    .boton:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* Tarjetas de servicio */
+    .tarjetas {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+
+    .tarjeta {
+        background: var(--blanco);
+        border: 1px solid var(--linea);
+        border-radius: var(--radio);
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        border-top:  4px solid var(--salvia);
+    }
+
+    .tarjeta--agotado { border-top-color: var(--linea); opacity: 0.8; }
+
+    .tarjeta__categoria { font-size: 0.82rem; color: var(--salvia); font-weight: 600; }
+
+    .tarjeta h3 { margin: 0; font-size: 1.45rem; }
+
+    .tarjeta__meta { margin: 0; font-size: 0.88rem; color: var(--tinta-suave); }
+
+    .tajeta__precio {
+        margin: 0.5rem 0 0;
+        font-family:  var(--fuente-titulo);
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: var(--ciruela);
+    }
+
+    .tarjeta__precio s { font-size: 1.1rem; color: var(--tinta-suave); font-weight: 500; margin-right: 0.4rem; }
+
+    .tarjeta .boton { margin-top: auto; align-self: flex-star; }
+
+    .vacio {
+        background: var(--blanco);
+        border: 1px dashed var(--linea);
+        border-radius: var(--radio);
+        padding: 1.5rem;
+        color: var(--tinta-suave);
+        grid-column: 1 / -1;
+    }
+
+    /* Reserva */
+    .reserva{
+        display: grid;
+        gap: 1rem;
+    }
+
+    .reserva__lista, .reserva__resumen {
+        background: var(--blanco);
+        border: 1px solid var(--linea);
+        border-radius: var(--radio);
+        padding: 1.25rem;
+    }
+
+    .lista-reserva { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+
+    .lista-reserva li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.7rem 0.9rem;
+        background: var(--crema);
+        border-radius: 10px; 
+    }
+
+    .lista-reserva small { display: block; color: var(--tinta-suave); }
+
+    .resumen { margin: 0; }
+
+    .resumen div {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.55rem 0;
+        border-bottom: 1px solid var(--crema-oscuro);
+    }
+
+    .resumen dt { color: var(--tinta-suave); }
+    .resumen dd { margin: 0; font-weight: 600; text-align: right;   }
+
+    .resumen .resumen__total { border-bottom: 0; padding-top: 0.9rem; }
+    .resumen .resumen__total dt, .resumen .resumen__total dd {
+        font-family: var(--fuente-titulo);
+        font-size: 1.6rem;
+        color: var(--ciruela);
+    }
+
+    /* Proyecto */
+    .tabla-contenedor {
+        overflow-x: auto;
+        background: var(--blanco);
+        border: 1px solid var(--linea);
+        border-radius: var(--radio);
+    }
+
+    .tabla { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+
+    .tabla th, .tabla td {
+        text-align: left;
+        padding: 0.75rem 1rem;
+        border-top: 1px solid var(--linea);
+        vertical-align: top;
+    }
+
+    .tabla thead th { background: var(--crema); border-top: 0; color: var(--tinta-suave); font-weight: 600; }
+
+    .tipo {
+        display: inline-block;
+        padding: 0.1rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        background: var(--salvia-clara);
+        color: #3d5f5a;
+    }
+    .tipo--transformacion { background: #f6dde1 }
+    .tipo--reduccion { background: #ece2f0; color: #5b3d6b; }
+
+    .pasos { margin: 0; padding-left: 1.25rem; display: grid; gap: 0.5rem; }
+
+    .pie{
+        border-top: 1px solid var(--linea);
+        padding-top: 1.25rem;
+        color: var(--tinta-suave);
+        font-size: 0.9rem;
+    }
+
+    .pie p { margin: 0.2rem 0; }
+
+    /*  Escritorio */
+    @media (min-width: 900px) {
+        .app { grid-template-columns: 290px 1fr; }
+        .lateral { position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .contenido { padding:  2rem 2.5rem; }
+        .portada { padding: 2.75rem 2.5rem; }
+        .reserva { grid-template-columns: 1.4fr 1fr; align-items: start; }
+    }
+    </style>
+    <script src="./js/main.js" defer></script>
+</head>
+<body>
+    <a class="salto" href="#catalogo">Saltar al catalogo</a>
+
+    <div class="app">
+
+        <!--Barra Lateral-->
+        <aside class="lateral" aria-label="Acciones del simulador">
+            <div class="marca">
+                <p class="marca__nombre">Bella Spa</p>
+                <p class="marca__lema">Bienestar para cuerpo y mente</p>
+            </div>
+
+            <button class="accion accion--principal" type="button" data-accion="menu">
+                Abrir menu completo
+                <small>Todas las opciones en ventanas emergentes</small>
+            </button>
+
+            <h2>Buscar y filtrar</h2>
+            <div class="acciones">
+                <button class="accion" type="button" data-accion="buscar">Buscar servicio<small>Por ID o por nombre</small></button>
+                <button class="accion" type="button" data-accion="categoria">Filtrar por categoria<small>Masajes, faciales y mas</small></button>
+                <button class="accion" type="button" data-accion="precio">Filtrar por precio maximo<small>Elige tu presupuesto</small></button>
+                <button class="accion" type="button" data-accion="top">Los 3 mas costosos<small>Ordenados de mayor a menor</small></button>
+                <button class="accion" type="button" data-accion="descuento">Aplicar descuento<small>Simula un precio promocional</small></button>
+            </div>
+
+            <h2>Tu reserva</h2>
+            <div class="acciones">
+                <button class="accion" type="button" data-accion="reservar">Reservar un servicio<small>Escribe el ID del servicio</small></button>
+                <button class="accion" type="button" data-accion="cancelar">Cancelar un servicio<small>Total, descuento y duracion</small></button>
+            </div>
+        </aside>
+
+        <!--Contenido-->
+        <main class="contenido">
+
+            <section class="portada" aria-labelledby="titulo-portada">
+                <h1 id="titulo-portada">Reserva tu momento de calma</h1>
+                <p>
+                    Simulador de reservas de un spa. Cada servicio es un objeto de la clase <code>Servicio</code>
+                    y el catalogo se consulta con funciones de orden superior como <code>find</code>,
+                    <code>filter</code>, <code>map</code> y <code>reduce</code>.
+                </p>
+                <div class="datos">
+                    <div class="dato"><strong id="dato-servicios">0</strong><span>Servicios</span></div>
+                                        <div class="dato"><strong id="dato-cupos">0</strong><span>Cupos libres</span></div>
+                                                            <div class="dato"><strong id="dato-categorias">0</strong><span>Categorias</span></div>
+                </div>
+            </section>
+
+            <div class="aviso" id="aviso" role="status" aria-live="polite">
+                Bienvenida a Bella Spa. Usa las acciones de la barra lateral para explorar el catalogo.
+            </div>
+
+            <section class="seccion" id="catalogo" aria-labelledby="titulo-catalogo">
+                <div class="seccion__cabecera">
+                    <div>
+                        <h2 id="titulo-catalogo">Catalogo de servicios</h2>
+                        <p id="vista-descripcion">Mostrando todos los servicios</p>
+                    </div>
+                    <button class="boton" type="button" data-accion="todos">Ver todos</button>
+                </div>
+                <div class="tarjetas" id="tarjetas">
+                    <p class="vacio">Cargando servicios...</p>
+                </div>
+            </section>
+
+            <section class="seccion" id="reserva" aria-labelledby="titulo-reserva">
+                <div class="seccion__cabecera">
+                    <div>
+                        <h2 id="titulo-reserva">Tu reserva</h2>
+                        <p>Reserva 3 o mas servicios y obten un descuento de paquete.</p>
+                    </div>
+                </div>
+
+                <div class="reserva">
+                    <div class="reserva__lista">
+                        <h3>Servicios elegidos</h3>
+                        <ul class="lista-reserva" id="lista-reserva">
+                            <li>Aun no has reservado ningun servicio.</li>
+                        </ul>
+                    </div>
+
+                    <div class="reserva__resumen">
+                        <h3>Resumen</h3>
+                        <dl class="resumen">
+                            <div><dt>Servicios</dt><dd id="res-cantidad">0</dd></div>
+                            <div><dt>Duracion total</dt><dd id="res-duracion">0 min</dd></div>
+                            <div><dt>Subtotal</dt><dd id="res-subtotal">$0</dd></div>
+                            <div><dt>Descuento de paquete</dt><dd id="res-descuento">$0</dd></div>
+                            <div class="resumen__total"><dt>Total</dt><dd id="res-total">$0</dd></div>
+                        </dl>
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="seccion" id="proyecto" aria-labelledby="titulo-proyecto">
+                <div class="seccion__cabecera">
+                    <div>
+                        <h2  id="titulo-proyecto">Funciones de orden superior ene l simulador</h2>
+                        <p>Pre-entrega 6: Interactuando con Funciones de Orden Superior.</p>
+                    </div>
+                </div>
+
+                <div class="tabla-contenedor">
+                    <table class="tabla">
+                        <thead>
+                            <tr><th scope="col">Metodo</th><th scope="col">Tipo</th><th scope="col">Donde se usa</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>find</code></td><td><span class="tipo">Búsqueda</span></td><td>Busca un servicio por su ID al buscar y al reservar.</td></tr>
+              <tr><td><code>filter</code></td><td><span class="tipo">Búsqueda</span></td><td>Filtra por nombre, categoría y precio máximo.</td></tr>
+              <tr><td><code>findIndex</code></td><td><span class="tipo">Búsqueda</span></td><td>Localiza la posición de un servicio para cancelarlo.</td></tr>
+              <tr><td><code>some</code></td><td><span class="tipo">Búsqueda</span></td><td>Comprueba si un servicio ya está en la reserva y si quedan cupos.</td></tr>
+              <tr><td><code>map</code></td><td><span class="tipo tipo--transformacion">Transformación</span></td><td>Crea la lista con descuento sin modificar los precios originales.</td></tr>
+              <tr><td><code>sort</code></td><td><span class="tipo tipo--transformacion">Transformación</span></td><td>Ordena los servicios para mostrar los 3 más costosos.</td></tr>
+              <tr><td><code>reduce</code></td><td><span class="tipo tipo--reduccion">Reducción</span></td><td>Suma el subtotal, la duración y los cupos del catálogo.</td></tr>
+              <tr><td><code>forEach</code></td><td><span class="tipo">Recorrido</span></td><td>Pinta las tarjetas y la lista de la reserva.</td></tr><tr><td><code>find</code></td><td><span class="tipo">Búsqueda</span></td><td>Busca un servicio por su ID al buscar y al reservar.</td></tr>
+              <tr><td><code>filter</code></td><td><span class="tipo">Búsqueda</span></td><td>Filtra por nombre, categoría y precio máximo.</td></tr>
+              <tr><td><code>findIndex</code></td><td><span class="tipo">Búsqueda</span></td><td>Localiza la posición de un servicio para cancelarlo.</td></tr>
+              <tr><td><code>some</code></td><td><span class="tipo">Búsqueda</span></td><td>Comprueba si un servicio ya está en la reserva y si quedan cupos.</td></tr>
+              <tr><td><code>map</code></td><td><span class="tipo tipo--transformacion">Transformación</span></td><td>Crea la lista con descuento sin modificar los precios originales.</td></tr>
+              <tr><td><code>sort</code></td><td><span class="tipo tipo--transformacion">Transformación</span></td><td>Ordena los servicios para mostrar los 3 más costosos.</td></tr>
+              <tr><td><code>reduce</code></td><td><span class="tipo tipo--reduccion">Reducción</span></td><td>Suma el subtotal, la duración y los cupos del catálogo.</td></tr>
+              <tr><td><code>forEach</code></td><td><span class="tipo">Recorrido</span></td><td>Pinta las tarjetas y la lista de la reserva.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="seccion" id="guia" aria-labelledby="titulo-guia">
+                <h2 id="titulo-guia">Como usar el simulador</h2>
+                <ol class="pasos">
+                    <li>Abre la consola del navegador (F12 o Option+Cmd+C en Safari) para ver el detalle de cada operacion.</li>
+                    <li>Elige una accion en la barra lateral. Las que piden datos abren una ventana emergente.</li>
+                    <li>Reserva servicios con su boton en ela tarjeta o con la accion Reservar un servicio. </li>
+                    <li>Revisa el resumen: con 3 o mas servicios se aplica el descuento de paquete.</li>
+                </ol>
+            </section>
+
+            <noscript>
+                <p class="aviso aviso--error">Este simulador necesita JavaScript activado para funcionar.</p>
+            </noscript>
+
+            <footer class="pie">
+                <p>Pre-Entrega 6: Interactuando con funciones de Orden Superior. Curso Full Stack Developer</p>
+                <p>Desarrollado por Juanita Callejas Castro</p>
+            </footer>
+        </main>
+    </div>
+</body>
+</html>
